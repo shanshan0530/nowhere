@@ -105,6 +105,18 @@ curl -X POST http://localhost:8080/ask -d '{"topic": "故宫"}'
 
 返回 JSON，包含 `text`（身体报告）和 `data`（结构化数据）。把端点文档发给 ChatGPT/DeepSeek 的 Function Calling 就能用。
 
+### 远端 MCP（给私有网关使用）
+
+```bash
+NOWHERE_MCP_TOKEN=一段足够长的随机密钥 \
+python -m nowhere.server --http --host 0.0.0.0 --port 8080
+```
+
+Streamable HTTP MCP 位于 `http://服务地址:8080/mcp`。令牌通过
+`Authorization: Bearer ...` 发送；令牌只放在部署平台的环境变量中。
+如果服务严格限制在同一私有网络，可显式设置
+`NOWHERE_ALLOW_UNAUTHENTICATED_HTTP=true`，但公开域名不应这样做。
+
 ### 方式四：网页旁观者
 
 ```bash
@@ -261,6 +273,10 @@ python -c "import json; d=json.load(open('nowhere/data/explorable_index.json'));
 |------|------|
 | `NOWHERE_QWEATHER_KEY` | 可选。和风天气 API key，不填就用气候区估算 |
 | `NOWHERE_HOME` | 可选。数据目录，默认 `~/.nowhere` |
+| `NOWHERE_MCP_TOKEN` | 远端 MCP 的 Bearer Token；HTTP 模式默认必填 |
+| `NOWHERE_MCP_HOST` | HTTP 监听地址，默认 `0.0.0.0` |
+| `NOWHERE_MCP_PORT` | HTTP 端口；部署平台的 `PORT` 优先 |
+| `NOWHERE_ALLOW_UNAUTHENTICATED_HTTP` | 仅私有网络可显式开启无令牌 HTTP |
 
 ---
 

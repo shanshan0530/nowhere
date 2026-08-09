@@ -1,8 +1,9 @@
-"""Nowhere MCP server -- wires all modules into 8 tools.
+"""Nowhere MCP server -- wires the world into local and remote MCP transports.
 
 Usage:
     python -m nowhere.server          # stdio MCP server
-    python -m nowhere.server --web 8080  # reserved for Task 11
+    python -m nowhere.server --web 8080  # observer web + stdio MCP
+    python -m nowhere.server --http --port 8080  # Streamable HTTP at /mcp
 """
 
 from __future__ import annotations
@@ -49,7 +50,26 @@ from nowhere import (
     weather,
 )
 
-mcp = FastMCP("nowhere")
+def _build_mcp() -> FastMCP:
+    token = os.getenv("NOWHERE_MCP_TOKEN", "").strip()
+    if not token:
+        return FastMCP("nowhere")
+    from fastmcp.server.auth import StaticTokenVerifier
+
+    verifier = StaticTokenVerifier(
+        tokens={
+            token: {
+                "sub": "shanshan-gateway",
+                "client_id": "shanshan-gateway",
+                "scopes": ["nowhere:travel"],
+            }
+        },
+        required_scopes=["nowhere:travel"],
+    )
+    return FastMCP("nowhere", auth=verifier)
+
+
+mcp = _build_mcp()
 
 # ── Module-level state ───────────────────────────────────────────────
 
@@ -2172,10 +2192,38 @@ def send_postcard(text: str) -> dict:
 # Entry point
 # =====================================================================
 
-if __name__ == "__main__":
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Nowhere MCP server")
     parser.add_argument("--web", type=int, default=None, help="Web observer port")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Serve Streamable HTTP MCP at /mcp",
+    )
+    parser.add_argument(
+        "--host",
+        default=os.getenv("NOWHERE_MCP_HOST", "0.0.0.0"),
+        help="HTTP bind host",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("PORT", os.getenv("NOWHERE_MCP_PORT", "8080"))),
+        help="HTTP bind port",
+    )
+    args = parser.parse_args(argv)
+    if args.http and args.web is not None:
+        parser.error("--http and --web cannot run together")
+    if (
+        args.http
+        and not os.getenv("NOWHERE_MCP_TOKEN", "").strip()
+        and os.getenv("NOWHERE_ALLOW_UNAUTHENTICATED_HTTP", "").strip().lower()
+        not in {"1", "true", "yes", "on"}
+    ):
+        parser.error(
+            "NOWHERE_MCP_TOKEN is required for HTTP mode; "
+            "set NOWHERE_ALLOW_UNAUTHENTICATED_HTTP=true only on a private network"
+        )
 
     # Preload ZIM in background (non-blocking)
     def _preload_zim():
@@ -2186,7 +2234,14 @@ if __name__ == "__main__":
             pass
     threading.Thread(target=_preload_zim, daemon=True).start()
 
-    if args.web is not None:
+    if args.http:
+        mcp.run(
+            transport="http",
+            host=args.host,
+            port=args.port,
+            path="/mcp",
+        )
+    elif args.web is not None:
         import uvicorn
         from nowhere.web import app as web_app
 
@@ -2200,3 +2255,7 @@ if __name__ == "__main__":
         asyncio.run(_run_with_web())
     else:
         mcp.run()
+
+
+if __name__ == "__main__":
+    main()

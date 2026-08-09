@@ -2,7 +2,7 @@
 name = "nowhere-mcp"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["fastmcp>=2", "httpx", "numpy", "scipy", "skyfield", "timezonefinder", "uvicorn", "opencc-python-reimplemented"]
+dependencies = ["fastmcp>=2.11,<4", "httpx", "numpy", "scipy", "ephem", "skyfield", "timezonefinder", "tzdata", "uvicorn", "opencc-python-reimplemented"]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-asyncio", "respx"]
