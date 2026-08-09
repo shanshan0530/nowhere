@@ -9,4 +9,3 @@ dev = ["pytest", "pytest-asyncio", "respx"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-
