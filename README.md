@@ -418,4 +418,3 @@ CC BY-NC 4.0（署名 + 禁止商用，二改随意）
 见 [LICENSE](LICENSE)。
 
 数据文件（GeoNames / WorldClim / Met Museum / iNaturalist 等）各有其原始许可，归原提供者所有。
-
