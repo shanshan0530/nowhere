@@ -34,4 +34,3 @@ def test_http_and_observer_modes_are_mutually_exclusive(monkeypatch):
 
     with pytest.raises(SystemExit):
         server.main(["--http", "--web", "8077"])
-
