@@ -1,4 +1,4 @@
-fastmcp>=2,<3
+fastmcp>=2.11,<3
 httpx
 numpy
 scipy
@@ -7,3 +7,4 @@ timezonefinder
 uvicorn
 opencc-python-reimplemented
 ephem
+tzdata
