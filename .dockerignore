@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.vscode/
+.idea/
+nowhere/tmp_home/
+tmp_home/
+tools/.cache/
+nowhere/static/postcards/
