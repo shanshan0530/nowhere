@@ -2,6 +2,11 @@
 nowhere/data/grid.npz
 ~/.nowhere/
 
+# Local secrets / deployment environment
+.env
+.env.*
+!.env.example
+
 # Python
 __pycache__/
 *.pyc
