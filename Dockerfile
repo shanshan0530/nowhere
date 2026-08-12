@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir . \
 EXPOSE 8080
 VOLUME ["/data"]
 
-CMD ["python", "-m", "nowhere.server", "--http"]
+CMD ["python", "-m", "nowhere.remote_app"]
