@@ -19,7 +19,14 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
-from nowhere.server import mcp
+# This entrypoint authenticates /mcp with X-API-Key (NOWHERE_MCP_KEY) below.
+# nowhere.server stacks a second Bearer check onto the FastMCP instance when
+# NOWHERE_MCP_TOKEN is set (for `server.py --http`), which made every
+# X-API-Key-only client fail with 401 invalid_token. Drop it for this process
+# before the server module builds its FastMCP instance.
+os.environ.pop("NOWHERE_MCP_TOKEN", None)
+
+from nowhere.server import mcp  # noqa: E402
 from nowhere.web import app as observer_app
 
 
