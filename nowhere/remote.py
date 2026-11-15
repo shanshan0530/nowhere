@@ -112,7 +112,7 @@ mcp_app = mcp.http_app(path="/")
 protected_mcp_app = McpApiKeyMiddleware(mcp_app)
 protected_observer_app = ObserverReadOnlyMiddleware(observer_app)
 
-app = Starlette(
+_routes_app = Starlette(
     routes=[
         Route("/health", health, methods=["GET"]),
         Mount("/mcp", app=protected_mcp_app),
@@ -120,3 +120,28 @@ app = Starlette(
     ],
     lifespan=mcp_app.lifespan,
 )
+
+
+class McpExactPathMiddleware:
+    """Serve ``/mcp`` exactly like ``/mcp/``.
+
+    The catch-all observer mount at ``/`` otherwise swallows the bare ``/mcp``
+    path (404) before Starlette can redirect it, and many MCP clients, including
+    the private gateway, strip the trailing slash. Rewriting in place (no
+    redirect) keeps POST bodies and the API-key check intact.
+    """
+
+    def __init__(self, app: Callable[..., Awaitable[Any]]) -> None:
+        self.app = app
+
+    async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
+        if scope.get("type") == "http" and scope.get("path") == "/mcp":
+            scope = dict(scope)
+            scope["path"] = "/mcp/"
+            raw = scope.get("raw_path")
+            if raw is not None:
+                scope["raw_path"] = b"/mcp/"
+        await self.app(scope, receive, send)
+
+
+app = McpExactPathMiddleware(_routes_app)
